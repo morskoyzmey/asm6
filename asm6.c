@@ -1,4 +1,7 @@
 /*  History:
+1.61
+	Made "chars" variable from getvalue() a global thing and used it 
+	to classify address like $0095 as absolute addressing in opcode().
 1.6
     Prevent error overload by emitting 2 bytes when branch instructions fail to parse
     Bugfix for negative numbers being parsed incorrectly after too many passes are made
@@ -83,7 +86,7 @@ label firstlabel={          //'$' label
 typedef unsigned char byte;
 typedef void (*icfn)(label*,char**);
 
-label *findlabel(char*);
+label *findlabel(const char*);
 void initlabels();
 label *newlabel();
 void getword(char*,char**,int);
@@ -467,9 +470,10 @@ char *strend(char *str, char *whitespace) {
 //set errmsg on error
 char gvline[WORDMAX];
 int dependant;//set to nonzero if symbol couldn't be resolved
+int chars;
 int getvalue(char **str) {
     char *s,*end;
-    int ret,chars,j;
+    int ret,j;
     label *p;
 
     getword(gvline,str,1);
@@ -1068,7 +1072,7 @@ void initlabels(void) {
 //don't call if list is empty!
 int findcmp;        //(these are used by newlabel)
 int findindex;      //.
-label *findlabel(char *name) {
+label *findlabel(const char *name) {
     int head,tail;
     label *p, *global;
 
@@ -1883,6 +1887,7 @@ void opcode(label *id, char **next) {
                 }
             } else {
                 if(opsize[type]==1) {
+					if (type == ZP && chars == 4) continue;// non-ZP! $0095 [!!!]
                     if(!dependant) {
                         if(val>255 || val<-128)
                             errmsg=OutOfRange;
