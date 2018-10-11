@@ -1887,7 +1887,7 @@ void opcode(label *id, char **next) {
                 }
             } else {
                 if(opsize[type]==1) {
-					if (type == ZP && chars == 4) continue;// non-ZP! $0095 [!!!]
+                    if (type == ZP && chars == 4) continue;// non-ZP! $0095 [!!!]
                     if(!dependant) {
                         if(val>255 || val<-128)
                             errmsg=OutOfRange;
