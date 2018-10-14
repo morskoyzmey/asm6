@@ -3,11 +3,19 @@ Fork of asm6 by Loopy with minor changes
 
 This small fork generates absolute addressing opcodes for four-digit ZP addresses (like $0092).
 
-Example: sta $0092
+Also added support for argument prefix (*), that forcing absolute addressing instead of ZP.
 
-Original asm6 produces: 85 92
+Example 1: `sta $0092`
 
-This fork produces: 8D 92 00
+Original asm6 produces: `85 92`
+
+This fork produces: `8D 92 00`
+
+Example 2: `sta *$92`
+
+Same result.
+
+Example 3: `sta *Variable`
 
 Also it fixes warning.
 
