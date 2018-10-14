@@ -1,7 +1,12 @@
 /*  History:
-1.61
+1.62
 	Made "chars" variable from getvalue() a global thing and used it 
 	to classify address like $0095 as absolute addressing in opcode().
+	Added argument prefix (*) support forcing absolute addressing instead of ZP.
+	Usage:
+		lda *Label
+		lda *%00000010
+		
 1.6
     Prevent error overload by emitting 2 bytes when branch instructions fail to parse
     Bugfix for negative numbers being parsed incorrectly after too many passes are made
@@ -471,6 +476,7 @@ char *strend(char *str, char *whitespace) {
 char gvline[WORDMAX];
 int dependant;//set to nonzero if symbol couldn't be resolved
 int chars;
+int absolute = 0;
 int getvalue(char **str) {
     char *s,*end;
     int ret,j;
@@ -639,6 +645,11 @@ int eval(char **str,int precedence) {
     s=*str+strspn(*str,whitesp);        //eatwhitespace
     unary=*s;
     switch(unary) {
+        case '*':				// forcing absolute addressing [!!!]
+            s++;
+            absolute=1;
+            ret=eval(&s,WHOLEEXP);
+            break;
         case '(':
             s++;
             ret=eval(&s,WHOLEEXP);
@@ -1862,6 +1873,8 @@ void opcode(label *id, char **next) {
     byte *op;
     int oldstate=needanotherpass;
     int forceRel = 0;
+	
+	absolute=0;
         
     for(op=(byte*)(*id).line;*op!=0xff;op+=2) {//loop through all addressing modes for this instruction
         needanotherpass=oldstate;
@@ -1887,6 +1900,7 @@ void opcode(label *id, char **next) {
                 }
             } else {
                 if(opsize[type]==1) {
+                    if (type == ZP && absolute) continue;// non-ZP! *$25 | *Label [!!!]
                     if (type == ZP && chars == 4) continue;// non-ZP! $0095 [!!!]
                     if(!dependant) {
                         if(val>255 || val<-128)
