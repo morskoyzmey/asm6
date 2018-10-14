@@ -1900,8 +1900,10 @@ void opcode(label *id, char **next) {
                 }
             } else {
                 if(opsize[type]==1) {
-                    if (type == ZP && absolute) continue;// non-ZP! *$25 | *Label [!!!]
-                    if (type == ZP && chars == 4) continue;// non-ZP! $0095 [!!!]
+                    if(type == ZP || type == ZPX || type == ZPY)
+                    {
+                        if (absolute || chars == 4)  continue;// forcing absolute addressing [!!!]
+                    }
                     if(!dependant) {
                         if(val>255 || val<-128)
                             errmsg=OutOfRange;
