@@ -1,12 +1,12 @@
 /*  History:
-1.62
-	Made "chars" variable from getvalue() a global thing and used it 
-	to classify address like $0095 as absolute addressing in opcode().
-	Added argument prefix (*) support forcing absolute addressing instead of ZP.
-	Usage:
-		lda *Label
-		lda *%00000010
-		
+1.63
+    Classify address like $0095 as absolute addressing in opcode().
+    Argument prefix (a:) forcing absolute addressing instead of ZP.
+    Usage:
+        lda $00fc
+        lda a:Label
+        lda a:%00000010
+
 1.6
     Prevent error overload by emitting 2 bytes when branch instructions fail to parse
     Bugfix for negative numbers being parsed incorrectly after too many passes are made
@@ -645,10 +645,17 @@ int eval(char **str,int precedence) {
     s=*str+strspn(*str,whitesp);        //eatwhitespace
     unary=*s;
     switch(unary) {
-        case '*':				// forcing absolute addressing [!!!]
-            s++;
-            absolute=1;
-            ret=eval(&s,WHOLEEXP);
+        case 'a':				// forcing absolute addressing [!!!]
+            if(*(s+1)==':')
+            {
+                s+=2;
+                absolute=1;
+                ret=eval(&s,WHOLEEXP);
+            }
+            else
+            {
+                ret=getvalue(&s);
+            }
             break;
         case '(':
             s++;
